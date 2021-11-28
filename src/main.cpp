@@ -127,23 +127,23 @@ MenuItem togglePonmItem("PonM", &onSelected);
 BackMenuItem backItem("Back", &onSelected, &ms);
 
 // HC05 bluetooth
-SoftwareSerial bluetooth(11, 12);
+SoftwareSerial bluetooth(10, 11);
 
 // Rotary encoder
 // Top view of rotary encoder:
 // Rotary A   -|   |-   Rotary Button
 // Ground     -| O |
 // Rotary B   -|___|-   Ground
-const int ROTARY_A = 2;
-const int ROTARY_B = 3;
-const int ROTARY_BUTTON = 8;
+const int ROTARY_A = 12;
+const int ROTARY_B = 2;
+const int ROTARY_BUTTON = 7;
 volatile int lastEncoded = 0;
 volatile long encoderValue = 0;
 
 // Thermocouple
-const int THERMO_DO = 4;   // num. 3
-const int THERMO_CS = 5;   // num. 2
-const int THERMO_CLK = 6;  // num. 1
+const int THERMO_DO = 3;   // num. 3
+const int THERMO_CS = 4;   // num. 2
+const int THERMO_CLK = 5;  // num. 1
 MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
 
 // Temperature data
@@ -155,11 +155,11 @@ double averageTemp = 0.0;
 unsigned long lastTempRead = 0;
 
 // SSR
-const int SSR = 7;
+const int SSR = 6;
 
 // Switches
-const int STEAM_SWITCH = 9;
-const int BREW_SWITCH = 10;
+const int STEAM_SWITCH = 8;
+const int BREW_SWITCH = 9;
 
 // PID
 double setpoint;
@@ -185,20 +185,21 @@ void setup() {
     oled.println(F("starting"));
     oled.set1X();
 
-    // fillTempWindow(); // TODO: remove
+    fillTempWindow();
     input = averageTemp;
 
     windowStartTime = millis();
     setpoint = settings.brewSetpoint;
 
+    pid.SetControllerDirection(DIRECT);
     pid.SetTunings(settings.p, settings.i, settings.d, settings.ponm ? P_ON_M : P_ON_E);
     pid.SetOutputLimits(0, WINDOW_SIZE);
     pid.SetMode(AUTOMATIC);
     pid.SetSampleTime(250); // set pid to compute new output every 250 ms to allow temp readings to happen
 
     pinMode(SSR, OUTPUT);
-    pinMode(STEAM_SWITCH, INPUT_PULLUP);
-    pinMode(BREW_SWITCH, INPUT_PULLUP);
+    pinMode(STEAM_SWITCH, INPUT);
+    pinMode(BREW_SWITCH, INPUT);
 
     pinMode(ROTARY_A, INPUT_PULLUP);
     pinMode(ROTARY_B, INPUT_PULLUP);
@@ -270,13 +271,13 @@ void loop() {
     // Compute new PID output
     bool pidComputed = pid.Compute();
 
-    // Control SSR using time proporional control
+    // Control SSR using time proportional control
     unsigned long now = millis();
     if (now - windowStartTime > WINDOW_SIZE) {
         windowStartTime += WINDOW_SIZE;
     }
     if (now - windowStartTime < output) {
-        digitalWrite(SSR, LOW); // TODO: HIGH
+        digitalWrite(SSR, HIGH);
     } else {
         digitalWrite(SSR, LOW);
     }
