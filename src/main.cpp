@@ -349,10 +349,6 @@ void handleEncoderInput(EncoderRotation rotation) {
             ms.next();
             ms.display();
         }
-        else {
-            // TODO: not needed?
-            // oled.clear();
-        }
     } else if (rotation == EncoderRotation::LEFT) {
         // Rotated left
         if (inMenu) {
